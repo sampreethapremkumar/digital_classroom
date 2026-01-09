@@ -23,8 +23,7 @@ public class WebConfig implements WebMvcConfigurer {
                 .allowedOriginPatterns(
                     "http://localhost:3000",
                     "http://localhost:8080",
-                    "https://digital-classroom-chk9-2mghun07f-sams-projects-7d6e29fb.vercel.app",
-                    "https://digital-classroom-chk9-hrgrk087y-sams-projects-7d6e29fb.vercel.app",
+                    "https://digital-classroom-*",
                     "https://*.vercel.app"
                 )
                 .allowedMethods("GET", "POST", "PUT", "DELETE", "OPTIONS")
