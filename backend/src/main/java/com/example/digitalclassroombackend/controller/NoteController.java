@@ -32,7 +32,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 
 @RestController
 @RequestMapping("/api/notes")
-@CrossOrigin(origins = "http://localhost:3000")
+@CrossOrigin(origins = {"http://localhost:3000", "https://digital-classroom-*", "https://*.vercel.app", "https://*.vercel-preview.app"})
 public class NoteController {
 
     @Autowired
