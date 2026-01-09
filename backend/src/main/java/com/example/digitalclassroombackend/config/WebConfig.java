@@ -1,11 +1,11 @@
 package com.example.digitalclassroombackend.config;
 
+import java.nio.file.Paths;
+
 import org.springframework.context.annotation.Configuration;
 import org.springframework.web.servlet.config.annotation.CorsRegistry;
 import org.springframework.web.servlet.config.annotation.ResourceHandlerRegistry;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
-
-import java.nio.file.Paths;
 
 @Configuration
 public class WebConfig implements WebMvcConfigurer {
@@ -23,6 +23,7 @@ public class WebConfig implements WebMvcConfigurer {
                 .allowedOriginPatterns(
                     "http://localhost:3000",
                     "http://localhost:8080",
+                    "https://digital-classroom-chk9-2mghun07f-sams-projects-7d6e29fb.vercel.app",
                     "https://digital-classroom-chk9-hrgrk087y-sams-projects-7d6e29fb.vercel.app",
                     "https://*.vercel.app"
                 )
