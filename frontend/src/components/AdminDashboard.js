@@ -18,9 +18,9 @@ const AdminDashboard = () => {
         try {
             setLoading(true);
             const [usersRes, pendingRes, statsRes] = await Promise.all([
-                axios.get('http://localhost:8080/api/admin/users'),
-                axios.get('http://localhost:8080/api/admin/users/pending'),
-                axios.get('http://localhost:8080/api/admin/statistics')
+                axios.get('/api/admin/users'),
+                axios.get('/api/admin/users/pending'),
+                axios.get('/api/admin/statistics')
             ]);
 
             setUsers(usersRes.data);
@@ -35,7 +35,7 @@ const AdminDashboard = () => {
 
     const handleApproveUser = async (userId) => {
         try {
-            await axios.post(`http://localhost:8080/api/admin/users/${userId}/approve`);
+            await axios.post(`/api/admin/users/${userId}/approve`);
             fetchAllData(); // Refresh data
         } catch (error) {
             console.error('Error approving user:', error);
@@ -44,7 +44,7 @@ const AdminDashboard = () => {
 
     const handleRejectUser = async (userId) => {
         try {
-            await axios.post(`http://localhost:8080/api/admin/users/${userId}/reject`);
+            await axios.post(`/api/admin/users/${userId}/reject`);
             fetchAllData(); // Refresh data
         } catch (error) {
             console.error('Error rejecting user:', error);
@@ -53,7 +53,7 @@ const AdminDashboard = () => {
 
     const handleChangeRole = async (userId, newRole) => {
         try {
-            await axios.put(`http://localhost:8080/api/admin/users/${userId}/role`, { role: newRole });
+            await axios.put(`/api/admin/users/${userId}/role`, { role: newRole });
             fetchAllData(); // Refresh data
         } catch (error) {
             console.error('Error changing user role:', error);
@@ -62,7 +62,7 @@ const AdminDashboard = () => {
 
     const handleActivateUser = async (userId) => {
         try {
-            await axios.post(`http://localhost:8080/api/admin/users/${userId}/activate`);
+            await axios.post(`/api/admin/users/${userId}/activate`);
             fetchAllData(); // Refresh data
         } catch (error) {
             console.error('Error activating user:', error);
@@ -71,7 +71,7 @@ const AdminDashboard = () => {
 
     const handleDeactivateUser = async (userId) => {
         try {
-            await axios.post(`http://localhost:8080/api/admin/users/${userId}/deactivate`);
+            await axios.post(`/api/admin/users/${userId}/deactivate`);
             fetchAllData(); // Refresh data
         } catch (error) {
             console.error('Error deactivating user:', error);
