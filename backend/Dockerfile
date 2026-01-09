@@ -1,21 +1,14 @@
-# Use OpenJDK 17 as the base image
+# Use official OpenJDK 17 image
 FROM eclipse-temurin:17-jdk
-# Set the working directory
+
+# Set working directory
 WORKDIR /app
 
-# Copy the Maven wrapper and pom.xml
-COPY pom.xml ./
-COPY mvnw ./
-COPY .mvn .mvn
+# Copy JAR file
+COPY target/*.jar app.jar
 
-# Copy the source code
-COPY src ./src
-
-# Build the application
-RUN ./mvnw clean package -DskipTests
-
-# Expose port 8080
+# Expose port
 EXPOSE 8080
 
-# Run the application
-CMD ["java", "-jar", "target/digital-classroom-backend-0.0.1-SNAPSHOT.jar"]
+# Run Spring Boot app
+ENTRYPOINT ["java", "-jar", "app.jar"]
