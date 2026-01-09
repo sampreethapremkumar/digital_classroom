@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import axios from 'axios';
+import axios from '../api';
 import { useNavigate } from 'react-router-dom';
 
 const UploadNotes = () => {
@@ -175,7 +175,7 @@ const UploadNotes = () => {
             uploadData.append('accessType', formData.accessType);
             uploadData.append('assignedStudents', JSON.stringify(formData.assignedStudents));
 
-            await axios.post('http://localhost:8080/api/notes', uploadData, {
+            await axios.post('/api/notes', uploadData, {
                 headers: { 'Content-Type': 'multipart/form-data' }
             });
 
