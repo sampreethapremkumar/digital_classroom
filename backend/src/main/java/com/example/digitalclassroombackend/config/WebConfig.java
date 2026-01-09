@@ -24,7 +24,8 @@ public class WebConfig implements WebMvcConfigurer {
                     "http://localhost:3000",
                     "http://localhost:8080",
                     "https://digital-classroom-*",
-                    "https://*.vercel.app"
+                    "https://*.vercel.app",
+                    "https://*.vercel-preview.app"
                 )
                 .allowedMethods("GET", "POST", "PUT", "DELETE", "OPTIONS")
                 .allowedHeaders("*")
