@@ -63,6 +63,46 @@ public class AssignmentController {
         return assignmentRepository.findAll();
     }
 
+    @GetMapping("/student/assignments")
+    public ResponseEntity<?> getStudentAssignments() {
+        try {
+            // Get current authenticated user
+            Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+            String username = authentication.getName();
+            User user = userRepository.findByUsername(username).orElse(null);
+
+            if (user == null || !"STUDENT".equals(user.getRole().name())) {
+                return ResponseEntity.status(403).body("Access denied");
+            }
+
+            // Get all assignments and filter based on access rules
+            List<Assignment> allAssignments = assignmentRepository.findAll();
+            List<Assignment> accessibleAssignments = new ArrayList<>();
+
+            for (Assignment assignment : allAssignments) {
+                boolean canAccess = false;
+
+                if ("ALL_CLASS".equals(assignment.getAccessType())) {
+                    // Check if student's class/semester matches the assignment's class/semester
+                    canAccess = user.getClassSemester() != null &&
+                               user.getClassSemester().equals(assignment.getClassSemester());
+                } else if ("SELECTED_STUDENTS".equals(assignment.getAccessType())) {
+                    // Check if student is in the assigned students list
+                    canAccess = assignment.getAssignedStudents() != null &&
+                               assignment.getAssignedStudents().contains(user);
+                }
+
+                if (canAccess) {
+                    accessibleAssignments.add(assignment);
+                }
+            }
+
+            return ResponseEntity.ok(accessibleAssignments);
+        } catch (Exception e) {
+            return ResponseEntity.status(500).body("Error fetching assignments: " + e.getMessage());
+        }
+    }
+
     @PostMapping(value = "/submit", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public ResponseEntity<?> submitAssignment(
             @RequestParam("assignmentId") Long assignmentId,
