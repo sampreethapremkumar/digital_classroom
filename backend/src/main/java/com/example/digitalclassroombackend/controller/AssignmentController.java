@@ -17,6 +17,8 @@ import java.util.Set;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -41,7 +43,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 
 @RestController
 @RequestMapping("/api/assignments")
-@CrossOrigin(origins = "http://localhost:3000")
+@CrossOrigin(origins = {"http://localhost:3000", "https://digital-classroom-*", "https://*.vercel.app", "https://*.vercel-preview.app"})
 public class AssignmentController {
 
     @Autowired
@@ -138,6 +140,15 @@ public class AssignmentController {
             @RequestParam(value = "file", required = false) MultipartFile file) {
 
         try {
+            // Get current authenticated user (teacher)
+            Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+            String username = authentication.getName();
+            User teacher = userRepository.findByUsername(username).orElse(null);
+
+            if (teacher == null) {
+                return ResponseEntity.status(401).body("User not authenticated");
+            }
+
             // Parse assigned students JSON
             ObjectMapper objectMapper = new ObjectMapper();
             List<Long> assignedStudentIds = Arrays.asList(objectMapper.readValue(assignedStudentsJson, Long[].class));
@@ -189,7 +200,6 @@ public class AssignmentController {
             }
 
             // Set metadata
-            User teacher = userRepository.findById(1L).orElse(null); // TODO: Get from JWT token
             assignment.setCreatedBy(teacher);
             assignment.setCreateDate(LocalDateTime.now());
 
