@@ -126,7 +126,12 @@ public class NoteController {
             }
 
             // For Cloudinary-hosted files, redirect to the Cloudinary URL
+            System.out.println("Download attempt for note ID: " + id);
+            System.out.println("File URL: " + note.getFileUrl());
+            System.out.println("File path: " + note.getFilePath());
+
             if (note.getFileUrl() != null && !note.getFileUrl().isEmpty()) {
+                System.out.println("Redirecting to Cloudinary URL: " + note.getFileUrl());
                 return ResponseEntity.status(302)
                         .header("Location", note.getFileUrl())
                         .header("Content-Disposition", "attachment; filename=\"" + note.getFileName() + "\"")
@@ -201,29 +206,46 @@ public class NoteController {
                 }
             }
 
-            // Handle file upload to Cloudinary
+            // Handle file upload - try Cloudinary first, fallback to local storage
             if (!file.isEmpty()) {
                 try {
                     String fileName = file.getOriginalFilename();
 
-                    // Upload to Cloudinary
-                    Map uploadResult = cloudinary.uploader().upload(file.getBytes(),
-                        ObjectUtils.asMap(
-                            "resource_type", "auto",
-                            "public_id", "notes/" + System.currentTimeMillis() + "_" + fileName
-                        ));
+                    // Try Cloudinary upload first
+                    try {
+                        Map uploadResult = cloudinary.uploader().upload(file.getBytes(),
+                            ObjectUtils.asMap(
+                                "resource_type", "auto",
+                                "public_id", "notes/" + System.currentTimeMillis() + "_" + fileName
+                            ));
 
-                    String cloudinaryUrl = (String) uploadResult.get("url");
-                    String secureUrl = (String) uploadResult.get("secure_url");
+                        String secureUrl = (String) uploadResult.get("secure_url");
+                        note.setFileUrl(secureUrl); // Use HTTPS URL
+                        note.setFilePath((String) uploadResult.get("public_id")); // Store public_id for reference
+                        note.setFileName(fileName);
+                        note.setFileType(file.getContentType() != null ? file.getContentType() : "application/octet-stream");
 
-                    note.setFileUrl(secureUrl); // Use HTTPS URL
-                    note.setFilePath((String) uploadResult.get("public_id")); // Store public_id for reference
-                    note.setFileName(fileName);
-                    note.setFileType(file.getContentType() != null ? file.getContentType() : "application/octet-stream");
+                        System.out.println("File uploaded to Cloudinary: " + secureUrl);
+                    } catch (Exception cloudinaryException) {
+                        System.err.println("Cloudinary upload failed, falling back to local storage: " + cloudinaryException.getMessage());
 
-                    System.out.println("File uploaded to Cloudinary: " + secureUrl);
+                        // Fallback to local storage
+                        String uploadDir = "uploads/";
+                        Path uploadPath = Paths.get(uploadDir);
+                        if (!Files.exists(uploadPath)) {
+                            Files.createDirectories(uploadPath);
+                        }
+                        Path filePath = uploadPath.resolve(fileName);
+                        Files.copy(file.getInputStream(), filePath, StandardCopyOption.REPLACE_EXISTING);
+
+                        note.setFilePath(filePath.toString());
+                        note.setFileName(fileName);
+                        note.setFileType(file.getContentType() != null ? file.getContentType() : "application/octet-stream");
+
+                        System.out.println("File saved locally: " + filePath.toString());
+                    }
                 } catch (Exception e) {
-                    System.err.println("Cloudinary upload failed: " + e.getMessage());
+                    System.err.println("File upload failed completely: " + e.getMessage());
                     return ResponseEntity.status(500).body("File upload failed: " + e.getMessage());
                 }
             }
