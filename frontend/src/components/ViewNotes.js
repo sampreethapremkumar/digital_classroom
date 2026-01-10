@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import axios from 'axios';
+import axios from '../api';
 import { useNavigate } from 'react-router-dom';
 
 const ViewNotes = () => {
@@ -13,7 +13,7 @@ const ViewNotes = () => {
 
     const fetchNotes = async () => {
         try {
-            const response = await axios.get('http://localhost:8080/api/student/notes');
+            const response = await axios.get('/api/student/notes');
             setNotes(response.data);
         } catch (error) {
             console.error('Error fetching notes:', error);
@@ -23,25 +23,23 @@ const ViewNotes = () => {
     const handleDownload = async (noteId, fileName) => {
         setDownloading(noteId);
         try {
-            // Create a temporary link element for download
-            const link = document.createElement('a');
-            link.href = `http://localhost:8080/api/notes/download/${noteId}`;
-            link.target = '_blank';
-            link.rel = 'noopener noreferrer';
-            link.download = fileName; // This suggests the filename to the browser
-            link.style.display = 'none';
+            const response = await axios.get(`/api/notes/download/${noteId}`, {
+                responseType: 'blob'
+            });
 
-            // Ensure no rotation or vertical display
-            link.style.transform = 'none';
-            link.style.writingMode = 'horizontal-tb';
-            link.style.textOrientation = 'mixed';
+            // Create a temporary link element for download
+            const url = window.URL.createObjectURL(new Blob([response.data]));
+            const link = document.createElement('a');
+            link.href = url;
+            link.download = fileName;
+            link.style.display = 'none';
 
             document.body.appendChild(link);
             link.click();
             document.body.removeChild(link);
 
-            // Increment download count (optional - would need backend endpoint)
-            // await axios.post(`http://localhost:8080/api/notes/${noteId}/download`);
+            // Clean up the URL object
+            window.URL.revokeObjectURL(url);
         } catch (error) {
             console.error('Error downloading note:', error);
         } finally {

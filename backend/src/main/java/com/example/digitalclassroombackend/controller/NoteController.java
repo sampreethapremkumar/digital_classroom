@@ -6,6 +6,7 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.StandardCopyOption;
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -44,6 +45,46 @@ public class NoteController {
     @GetMapping("/notes")
     public List<Note> getAllNotes() {
         return noteRepository.findAll();
+    }
+
+    @GetMapping("/student/notes")
+    public ResponseEntity<?> getStudentNotes() {
+        try {
+            // Get current authenticated user
+            Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+            String username = authentication.getName();
+            User user = userRepository.findByUsername(username).orElse(null);
+
+            if (user == null || !"STUDENT".equals(user.getRole().name())) {
+                return ResponseEntity.status(403).body("Access denied");
+            }
+
+            // Get all notes and filter based on access rules
+            List<Note> allNotes = noteRepository.findAll();
+            List<Note> accessibleNotes = new ArrayList<>();
+
+            for (Note note : allNotes) {
+                boolean canAccess = false;
+
+                if ("ALL_CLASS".equals(note.getAccessType())) {
+                    // Check if student's class/semester matches the note's class/semester
+                    canAccess = user.getClassSemester() != null &&
+                               user.getClassSemester().equals(note.getClassSemester());
+                } else if ("SELECTED_STUDENTS".equals(note.getAccessType())) {
+                    // Check if student is in the assigned students list
+                    canAccess = note.getAssignedStudents() != null &&
+                               note.getAssignedStudents().contains(user);
+                }
+
+                if (canAccess) {
+                    accessibleNotes.add(note);
+                }
+            }
+
+            return ResponseEntity.ok(accessibleNotes);
+        } catch (Exception e) {
+            return ResponseEntity.status(500).body("Error fetching notes: " + e.getMessage());
+        }
     }
 
     @GetMapping("/download/{id}")
