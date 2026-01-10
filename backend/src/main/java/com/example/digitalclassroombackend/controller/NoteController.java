@@ -107,22 +107,27 @@ public class NoteController {
             // Check if user has access to this note
             boolean canAccess = false;
 
-            if ("ALL_CLASS".equals(note.getAccessType())) {
-                // Check if user's class/semester matches the note's class/semester
-                canAccess = user.getClassSemester() != null &&
-                           user.getClassSemester().equals(note.getClassSemester());
-            } else if ("SELECTED_STUDENTS".equals(note.getAccessType())) {
-                // Check if user is in the assigned students list
-                canAccess = note.getAssignedStudents() != null &&
-                           note.getAssignedStudents().contains(user);
-            }
-
-            // Teachers and admins can access all notes
-            if ("TEACHER".equals(user.getRole().name()) || "ADMIN".equals(user.getRole().name())) {
+            // Students can download notes they can see (same logic as getStudentNotes)
+            if ("STUDENT".equals(user.getRole().name())) {
+                if ("ALL_CLASS".equals(note.getAccessType())) {
+                    // Check if student's class/semester matches the note's class/semester
+                    canAccess = user.getClassSemester() != null &&
+                               user.getClassSemester().equals(note.getClassSemester());
+                } else if ("SELECTED_STUDENTS".equals(note.getAccessType())) {
+                    // Check if student is in the assigned students list
+                    canAccess = note.getAssignedStudents() != null &&
+                               note.getAssignedStudents().contains(user);
+                }
+            } else {
+                // Teachers and admins can access all notes
                 canAccess = true;
             }
 
             if (!canAccess) {
+                System.out.println("Access denied for user: " + username + ", role: " + user.getRole() +
+                                 ", note accessType: " + note.getAccessType() +
+                                 ", user classSemester: " + user.getClassSemester() +
+                                 ", note classSemester: " + note.getClassSemester());
                 return ResponseEntity.status(403).body("Access denied");
             }
 
