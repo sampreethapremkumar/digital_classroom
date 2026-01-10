@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import axios from 'axios';
+import axios from '../api';
 import { useNavigate, useParams } from 'react-router-dom';
 
 const GradeAssignment = () => {
@@ -22,13 +22,13 @@ const GradeAssignment = () => {
 
     const fetchSubmissionDetails = async () => {
         try {
-            const response = await axios.get(`http://localhost:8080/api/assignments/submissions/${submissionId}`);
+            const response = await axios.get(`/api/assignments/submissions/${submissionId}`);
             setSubmission(response.data);
 
             // Fetch rubric if assignment has one
             if (response.data.assignment && response.data.assignment.id) {
                 try {
-                    const rubricResponse = await axios.get(`http://localhost:8080/api/assignments/${response.data.assignment.id}/rubric`);
+                    const rubricResponse = await axios.get(`/api/assignments/${response.data.assignment.id}/rubric`);
                     if (rubricResponse.data) {
                         setRubric(rubricResponse.data);
                         // Initialize rubric scores
@@ -90,7 +90,7 @@ const GradeAssignment = () => {
 
             console.log('Saving draft:', requestData);
 
-            const response = await axios.post('http://localhost:8080/api/teacher/grades', requestData);
+            const response = await axios.post('/api/teacher/grades', requestData);
             console.log('Draft save response:', response.data);
 
             setSuccess('Grade saved as draft successfully!');
@@ -148,7 +148,7 @@ const GradeAssignment = () => {
 
             console.log('Publishing final grade:', requestData);
 
-            const response = await axios.post('http://localhost:8080/api/teacher/grades', requestData);
+            const response = await axios.post('/api/teacher/grades', requestData);
             console.log('Final grade response:', response.data);
 
             setSuccess('Grade submitted successfully!');
@@ -187,7 +187,7 @@ const GradeAssignment = () => {
             // First, check if a grade already exists for this submission
             let gradeId = null;
             try {
-                const gradesResponse = await axios.get(`http://localhost:8080/api/grades/submission/${submissionId}`);
+            const gradesResponse = await axios.get(`/api/grades/submission/${submissionId}`);
                 if (gradesResponse.data && gradesResponse.data.id) {
                     gradeId = gradesResponse.data.id;
                 }
@@ -197,12 +197,12 @@ const GradeAssignment = () => {
 
             if (gradeId) {
                 // Reject existing grade
-                await axios.post(`http://localhost:8080/api/teacher/grades/${gradeId}/reject`, {
+                await axios.post(`/api/teacher/grades/${gradeId}/reject`, {
                     reason: reason
                 });
             } else {
                 // Create a new grade and then reject it
-                const createGradeResponse = await axios.post('http://localhost:8080/api/teacher/grades', {
+                const createGradeResponse = await axios.post('/api/teacher/grades', {
                     submission_id: parseInt(submissionId),
                     feedback: reason,
                     marks: 0 // Rejected submissions get 0 marks
@@ -210,7 +210,7 @@ const GradeAssignment = () => {
 
                 // Then reject it
                 const newGradeId = createGradeResponse.data.id; // Assuming the response includes the grade ID
-                await axios.post(`http://localhost:8080/api/teacher/grades/${newGradeId}/reject`, {
+                await axios.post(`/api/teacher/grades/${newGradeId}/reject`, {
                     reason: reason
                 });
             }
@@ -237,7 +237,9 @@ const GradeAssignment = () => {
     };
 
     const handleFileClick = (filename) => {
-        const fileUrl = `http://localhost:8080/uploads/submissions/${filename}`;
+        // Use the configured API base URL for file downloads
+        const API_BASE_URL = process.env.REACT_APP_BACKEND_URL || 'http://localhost:8080';
+        const fileUrl = `${API_BASE_URL}/uploads/submissions/${filename}`;
         window.open(fileUrl, '_blank');
     };
 
