@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import axios from 'axios';
+import axios from '../api';
 import { useNavigate } from 'react-router-dom';
 
 const ViewSubmissions = () => {
@@ -12,7 +12,7 @@ const ViewSubmissions = () => {
 
     const fetchSubmissions = async () => {
         try {
-            const response = await axios.get('http://localhost:8080/api/assignments/submissions');
+            const response = await axios.get('/api/assignments/submissions');
             setSubmissions(response.data);
         } catch (error) {
             console.error('Error fetching submissions:', error);
@@ -20,7 +20,9 @@ const ViewSubmissions = () => {
     };
 
     const handleFileClick = (filename) => {
-        const fileUrl = `http://localhost:8080/uploads/submissions/${filename}`;
+        // Use the configured API base URL for file downloads
+        const API_BASE_URL = process.env.REACT_APP_BACKEND_URL || 'http://localhost:8080';
+        const fileUrl = `${API_BASE_URL}/uploads/submissions/${filename}`;
         window.open(fileUrl, '_blank');
     };
 
