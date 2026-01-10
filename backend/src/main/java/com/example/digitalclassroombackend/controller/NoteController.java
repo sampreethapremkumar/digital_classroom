@@ -11,6 +11,8 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
+import java.util.Map;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
@@ -24,6 +26,9 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
+
+import com.cloudinary.Cloudinary;
+import com.cloudinary.utils.ObjectUtils;
 
 import com.example.digitalclassroombackend.model.Note;
 import com.example.digitalclassroombackend.model.User;
@@ -41,6 +46,9 @@ public class NoteController {
 
     @Autowired
     private UserRepository userRepository;
+
+    @Autowired
+    private Cloudinary cloudinary;
 
     @GetMapping("/notes")
     public List<Note> getAllNotes() {
@@ -117,8 +125,17 @@ public class NoteController {
                 return ResponseEntity.status(403).body("Access denied");
             }
 
+            // For Cloudinary-hosted files, redirect to the Cloudinary URL
+            if (note.getFileUrl() != null && !note.getFileUrl().isEmpty()) {
+                return ResponseEntity.status(302)
+                        .header("Location", note.getFileUrl())
+                        .header("Content-Disposition", "attachment; filename=\"" + note.getFileName() + "\"")
+                        .build();
+            }
+
+            // Fallback: try local file (for backward compatibility)
             Path path = Paths.get(note.getFilePath());
-            System.out.println("Attempting to download file: " + note.getFilePath());
+            System.out.println("Attempting to download local file: " + note.getFilePath());
             System.out.println("File exists: " + Files.exists(path));
             if (!Files.exists(path)) {
                 System.out.println("File not found at path: " + path.toAbsolutePath());
@@ -184,22 +201,30 @@ public class NoteController {
                 }
             }
 
-            // Handle file upload
+            // Handle file upload to Cloudinary
             if (!file.isEmpty()) {
                 try {
                     String fileName = file.getOriginalFilename();
-                    String uploadDir = "uploads/";
-                    Path uploadPath = Paths.get(uploadDir);
-                    if (!Files.exists(uploadPath)) {
-                        Files.createDirectories(uploadPath);
-                    }
-                    Path filePath = uploadPath.resolve(fileName);
-                    Files.copy(file.getInputStream(), filePath, StandardCopyOption.REPLACE_EXISTING);
-                    note.setFilePath(filePath.toString());
+
+                    // Upload to Cloudinary
+                    Map uploadResult = cloudinary.uploader().upload(file.getBytes(),
+                        ObjectUtils.asMap(
+                            "resource_type", "auto",
+                            "public_id", "notes/" + System.currentTimeMillis() + "_" + fileName
+                        ));
+
+                    String cloudinaryUrl = (String) uploadResult.get("url");
+                    String secureUrl = (String) uploadResult.get("secure_url");
+
+                    note.setFileUrl(secureUrl); // Use HTTPS URL
+                    note.setFilePath((String) uploadResult.get("public_id")); // Store public_id for reference
                     note.setFileName(fileName);
-                    note.setFileType(file.getContentType());
-                } catch (IOException e) {
-                    return ResponseEntity.status(500).body("File upload failed");
+                    note.setFileType(file.getContentType() != null ? file.getContentType() : "application/octet-stream");
+
+                    System.out.println("File uploaded to Cloudinary: " + secureUrl);
+                } catch (Exception e) {
+                    System.err.println("Cloudinary upload failed: " + e.getMessage());
+                    return ResponseEntity.status(500).body("File upload failed: " + e.getMessage());
                 }
             }
 

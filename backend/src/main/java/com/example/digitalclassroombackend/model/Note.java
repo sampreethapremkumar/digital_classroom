@@ -27,8 +27,9 @@ public class Note {
 
     private String description;
 
-    @NotBlank
-    private String filePath;
+    private String filePath; // Local file path (for backward compatibility)
+
+    private String fileUrl; // Cloudinary URL
 
     @NotBlank
     private String fileName;
@@ -89,6 +90,14 @@ public class Note {
 
     public void setFilePath(String filePath) {
         this.filePath = filePath;
+    }
+
+    public String getFileUrl() {
+        return fileUrl;
+    }
+
+    public void setFileUrl(String fileUrl) {
+        this.fileUrl = fileUrl;
     }
 
     public String getFileName() {
