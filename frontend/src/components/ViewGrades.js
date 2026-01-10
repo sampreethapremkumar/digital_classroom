@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import axios from 'axios';
+import axios from '../api';
 import { useNavigate } from 'react-router-dom';
 
 const ViewGrades = () => {
@@ -12,7 +12,7 @@ const ViewGrades = () => {
 
     const fetchGrades = async () => {
         try {
-            const response = await axios.get('http://localhost:8080/api/student/grades');
+            const response = await axios.get('/api/student/grades');
             console.log('Fetched grades:', response.data);
             console.log('First grade rubric scores:', response.data[0]?.submission?.rubricScores);
             setGrades(response.data);
