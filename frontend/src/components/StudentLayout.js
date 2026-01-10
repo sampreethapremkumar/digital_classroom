@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
+import axios from '../api';
 import ViewNotes from './ViewNotes';
 import SubmitAssignments from './SubmitAssignments';
 import TakeQuizzes from './TakeQuizzes';
@@ -63,9 +64,8 @@ const StudentLayout = () => {
     useEffect(() => {
         // Fetch stats for dashboard
         if (activeItem === 'dashboard') {
-            fetch('http://localhost:8080/api/student/stats')
-                .then(response => response.json())
-                .then(data => setStats(data))
+            axios.get('/api/student/stats')
+                .then(response => setStats(response.data))
                 .catch(error => console.error('Error fetching stats:', error));
         }
     }, [activeItem]);

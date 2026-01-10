@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
+import axios from '../api';
 import TeacherDashboard from './TeacherDashboard';
 import UploadNotes from './UploadNotes';
 import CreateAssignment from './CreateAssignment';
@@ -66,13 +67,10 @@ const TeacherLayout = () => {
         // Fetch stats for dashboard
         if (activeItem === 'dashboard') {
             const username = localStorage.getItem('username');
-            const url = username
-                ? `http://localhost:8080/api/teacher/stats?username=${encodeURIComponent(username)}`
-                : 'http://localhost:8080/api/teacher/stats';
+            const params = username ? `?username=${encodeURIComponent(username)}` : '';
 
-            fetch(url)
-                .then(response => response.json())
-                .then(data => setStats(data))
+            axios.get(`/api/teacher/stats${params}`)
+                .then(response => setStats(response.data))
                 .catch(error => console.error('Error fetching stats:', error));
         }
     }, [activeItem]);
@@ -575,3 +573,4 @@ const TeacherDashboardContent = ({ stats }) => {
 };
 
 export default TeacherLayout;
+
