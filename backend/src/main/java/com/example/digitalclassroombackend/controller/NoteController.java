@@ -118,7 +118,10 @@ public class NoteController {
             }
 
             Path path = Paths.get(note.getFilePath());
+            System.out.println("Attempting to download file: " + note.getFilePath());
+            System.out.println("File exists: " + Files.exists(path));
             if (!Files.exists(path)) {
+                System.out.println("File not found at path: " + path.toAbsolutePath());
                 return ResponseEntity.notFound().build();
             }
 
