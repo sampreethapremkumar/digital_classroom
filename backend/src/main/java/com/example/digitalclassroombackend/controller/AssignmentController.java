@@ -75,30 +75,51 @@ public class AssignmentController {
                 return ResponseEntity.status(403).body("Access denied");
             }
 
+            System.out.println("Fetching assignments for student: " + username);
+            System.out.println("Student role: " + user.getRole());
+            System.out.println("Student classSemester: " + user.getClassSemester());
+
             // Get all assignments and filter based on access rules
             List<Assignment> allAssignments = assignmentRepository.findAll();
+            System.out.println("Total assignments in DB: " + allAssignments.size());
+
             List<Assignment> accessibleAssignments = new ArrayList<>();
 
             for (Assignment assignment : allAssignments) {
+                System.out.println("Checking assignment: " + assignment.getTitle() +
+                                 ", accessType: " + assignment.getAccessType() +
+                                 ", classSemester: " + assignment.getClassSemester());
+
                 boolean canAccess = false;
 
                 if ("ALL_CLASS".equals(assignment.getAccessType())) {
                     // Check if student's class/semester matches the assignment's class/semester
                     canAccess = user.getClassSemester() != null &&
                                user.getClassSemester().equals(assignment.getClassSemester());
+                    System.out.println("ALL_CLASS check: user classSemester=" + user.getClassSemester() +
+                                     ", assignment classSemester=" + assignment.getClassSemester() +
+                                     ", canAccess=" + canAccess);
                 } else if ("SELECTED_STUDENTS".equals(assignment.getAccessType())) {
                     // Check if student is in the assigned students list
                     canAccess = assignment.getAssignedStudents() != null &&
                                assignment.getAssignedStudents().contains(user);
+                    System.out.println("SELECTED_STUDENTS check: assignedStudents size=" +
+                                     (assignment.getAssignedStudents() != null ? assignment.getAssignedStudents().size() : 0) +
+                                     ", contains user=" + canAccess);
                 }
 
                 if (canAccess) {
                     accessibleAssignments.add(assignment);
+                    System.out.println("Assignment accessible: " + assignment.getTitle());
+                } else {
+                    System.out.println("Assignment NOT accessible: " + assignment.getTitle());
                 }
             }
 
+            System.out.println("Total accessible assignments: " + accessibleAssignments.size());
             return ResponseEntity.ok(accessibleAssignments);
         } catch (Exception e) {
+            System.err.println("Error fetching assignments: " + e.getMessage());
             return ResponseEntity.status(500).body("Error fetching assignments: " + e.getMessage());
         }
     }
