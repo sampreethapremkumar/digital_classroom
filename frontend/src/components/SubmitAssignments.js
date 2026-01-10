@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import axios from 'axios';
+import axios from '../api';
 import { useNavigate } from 'react-router-dom';
 
 const SubmitAssignments = () => {
@@ -13,17 +13,23 @@ const SubmitAssignments = () => {
     }, []);
 
     const fetchAssignments = async () => {
+        console.log('SubmitAssignments: Attempting to fetch assignments');
         try {
-            const response = await axios.get('http://localhost:8080/api/student/assignments');
+            console.log('SubmitAssignments: Calling /api/student/assignments');
+            const response = await axios.get('/api/student/assignments');
+            console.log('SubmitAssignments: Student assignments response:', response.data);
             setAssignments(response.data);
         } catch (error) {
-            console.error('Error fetching assignments:', error);
+            console.error('SubmitAssignments: Error fetching student assignments:', error);
+            console.error('SubmitAssignments: Error response:', error.response);
             // Fallback to general assignments endpoint if student endpoint fails
             try {
-                const fallbackResponse = await axios.get('http://localhost:8080/api/assignments');
+                console.log('SubmitAssignments: Falling back to /api/assignments');
+                const fallbackResponse = await axios.get('/api/assignments');
+                console.log('SubmitAssignments: Fallback response:', fallbackResponse.data);
                 setAssignments(fallbackResponse.data);
             } catch (fallbackError) {
-                console.error('Fallback also failed:', fallbackError);
+                console.error('SubmitAssignments: Fallback also failed:', fallbackError);
             }
         }
     };
@@ -47,7 +53,7 @@ const SubmitAssignments = () => {
         formData.append('username', username);
 
         try {
-            const response = await axios.post('http://localhost:8080/api/assignments/submit', formData, {
+            const response = await axios.post('/api/assignments/submit', formData, {
                 headers: {
                     'Content-Type': 'multipart/form-data'
                 }
