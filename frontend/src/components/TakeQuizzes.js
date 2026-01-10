@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import axios from 'axios';
+import axios from '../api';
 import { useNavigate } from 'react-router-dom';
 import './TakeQuizzes.css';
 
@@ -65,7 +65,7 @@ const TakeQuizzes = () => {
 
     const fetchQuizzes = async () => {
         try {
-            const response = await axios.get('http://localhost:8080/api/student/quizzes');
+            const response = await axios.get('/api/student/quizzes');
             setQuizzes(response.data);
         } catch (error) {
             console.error('Error fetching quizzes:', error);
@@ -77,7 +77,7 @@ const TakeQuizzes = () => {
         try {
             console.log('Fetching quiz details for quiz ID:', quizId);
             // Need to add endpoint to fetch quiz with questions and options
-            const response = await axios.get(`http://localhost:8080/api/student/quizzes/${quizId}/details`);
+            const response = await axios.get(`/api/student/quizzes/${quizId}/details`);
             console.log('Quiz details response:', response.data);
             console.log('Questions in response:', response.data.questions);
             return response.data;
@@ -151,7 +151,7 @@ const TakeQuizzes = () => {
                 console.log(`Question ${key}: ${value} (type: ${typeof value})`);
             }
 
-            const response = await axios.post(`http://localhost:8080/api/student/quizzes/${selectedQuiz.id}/submit`, answers);
+            const response = await axios.post(`/api/student/quizzes/${selectedQuiz.id}/submit`, answers);
             console.log('Submission response:', response.data);
             console.log('Response data types:');
             console.log('score:', typeof response.data.score, response.data.score);
