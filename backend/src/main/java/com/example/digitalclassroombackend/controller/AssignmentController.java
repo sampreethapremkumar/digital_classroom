@@ -33,13 +33,12 @@ import com.example.digitalclassroombackend.model.Assignment;
 import com.example.digitalclassroombackend.model.Grades;
 import com.example.digitalclassroombackend.model.Submission;
 import com.example.digitalclassroombackend.model.User;
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.example.digitalclassroombackend.repository.AssignmentRepository;
 import com.example.digitalclassroombackend.repository.GradesRepository;
 import com.example.digitalclassroombackend.repository.SubmissionRepository;
 import com.example.digitalclassroombackend.repository.UserRepository;
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.JsonMappingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
 
 @RestController
 @RequestMapping("/api/assignments")
@@ -440,5 +439,146 @@ public class AssignmentController {
         response.put("criteria", criteriaList);
 
         return ResponseEntity.ok(response);
+    }
+
+    // Grading endpoints
+    @PostMapping("/teacher/grades")
+    public ResponseEntity<?> submitGrade(@RequestBody Map<String, Object> requestData) {
+        try {
+            // Get current authenticated user (teacher)
+            Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+            String username = authentication.getName();
+            User teacher = userRepository.findByUsername(username).orElse(null);
+
+            if (teacher == null) {
+                return ResponseEntity.status(401).body("User not authenticated");
+            }
+
+            Long submissionId = Long.valueOf(requestData.get("submission_id").toString());
+            Submission submission = submissionRepository.findById(submissionId).orElse(null);
+
+            if (submission == null) {
+                return ResponseEntity.badRequest().body("Submission not found");
+            }
+
+            // Check if teacher has permission to grade this assignment
+            if (!submission.getAssignment().getCreatedBy().getId().equals(teacher.getId())) {
+                return ResponseEntity.status(403).body("You can only grade assignments you created");
+            }
+
+            // Check if already graded
+            Grades existingGrade = gradesRepository.findBySubmission(submission);
+            if (existingGrade != null && "PUBLISHED".equals(existingGrade.getStatus().name())) {
+                return ResponseEntity.badRequest().body("This submission has already been graded and published");
+            }
+
+            // Create or update grade
+            Grades grade;
+            if (existingGrade != null) {
+                grade = existingGrade;
+            } else {
+                grade = new Grades();
+                grade.setSubmission(submission);
+            }
+
+            // Set marks and feedback
+            if (requestData.containsKey("marks")) {
+                grade.setMarks(Double.valueOf(requestData.get("marks").toString()));
+            }
+
+            if (requestData.containsKey("rubricScores")) {
+                // Handle rubric scores - calculate total from rubric
+                @SuppressWarnings("unchecked")
+                List<Map<String, Object>> rubricScores = (List<Map<String, Object>>) requestData.get("rubricScores");
+                double totalScore = rubricScores.stream()
+                    .mapToDouble(score -> Double.valueOf(score.get("score").toString()))
+                    .sum();
+                grade.setMarks(totalScore);
+            }
+
+            grade.setFeedback(requestData.get("feedback").toString());
+
+            // Set status based on action
+            String action = (String) requestData.get("action");
+            if ("publish".equals(action)) {
+                grade.setStatus(Grades.GradeStatus.PUBLISHED);
+                grade.setPublishedAt(LocalDateTime.now());
+            } else {
+                grade.setStatus(Grades.GradeStatus.GRADED);
+            }
+
+            grade.setGradedAt(LocalDateTime.now());
+
+            gradesRepository.save(grade);
+
+            return ResponseEntity.ok("Grade " + ("publish".equals(action) ? "submitted" : "saved as draft") + " successfully");
+
+        } catch (Exception e) {
+            return ResponseEntity.status(500).body("Failed to submit grade: " + e.getMessage());
+        }
+    }
+
+    @GetMapping("/grades/submission/{submissionId}")
+    public ResponseEntity<?> getGradeBySubmission(@PathVariable Long submissionId) {
+        try {
+            Submission submission = submissionRepository.findById(submissionId).orElse(null);
+            if (submission == null) {
+                return ResponseEntity.notFound().build();
+            }
+
+            Grades grade = gradesRepository.findBySubmission(submission);
+            if (grade == null) {
+                return ResponseEntity.ok(null);
+            }
+
+            Map<String, Object> gradeData = new HashMap<>();
+            gradeData.put("id", grade.getId());
+            gradeData.put("marks", grade.getMarks());
+            gradeData.put("feedback", grade.getFeedback());
+            gradeData.put("status", grade.getStatus().name());
+            gradeData.put("gradedAt", grade.getGradedAt());
+            gradeData.put("publishedAt", grade.getPublishedAt());
+
+            return ResponseEntity.ok(gradeData);
+
+        } catch (Exception e) {
+            return ResponseEntity.status(500).body("Failed to fetch grade: " + e.getMessage());
+        }
+    }
+
+    @PostMapping("/teacher/grades/{gradeId}/reject")
+    public ResponseEntity<?> rejectSubmission(@PathVariable Long gradeId, @RequestBody Map<String, Object> requestData) {
+        try {
+            // Get current authenticated user (teacher)
+            Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+            String username = authentication.getName();
+            User teacher = userRepository.findByUsername(username).orElse(null);
+
+            if (teacher == null) {
+                return ResponseEntity.status(401).body("User not authenticated");
+            }
+
+            Grades grade = gradesRepository.findById(gradeId).orElse(null);
+            if (grade == null) {
+                return ResponseEntity.notFound().build();
+            }
+
+            // Check if teacher has permission
+            if (!grade.getSubmission().getAssignment().getCreatedBy().getId().equals(teacher.getId())) {
+                return ResponseEntity.status(403).body("You can only manage grades for assignments you created");
+            }
+
+            // Update grade status to rejected
+            grade.setStatus(Grades.GradeStatus.REJECTED);
+            grade.setFeedback(requestData.get("reason").toString());
+            grade.setPublishedAt(LocalDateTime.now());
+
+            gradesRepository.save(grade);
+
+            return ResponseEntity.ok("Submission rejected successfully");
+
+        } catch (Exception e) {
+            return ResponseEntity.status(500).body("Failed to reject submission: " + e.getMessage());
+        }
     }
 }
