@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import axios from 'axios';
+import axios from '../api';
 import { useNavigate } from 'react-router-dom';
 
 const CreateQuiz = () => {
@@ -60,7 +60,7 @@ const CreateQuiz = () => {
 
     const fetchStudents = async () => {
         try {
-            const response = await axios.get('http://localhost:8080/api/auth/students');
+            const response = await axios.get('/api/auth/students');
             setAllStudents(response.data);
         } catch (error) {
             console.error('Error fetching students:', error);
@@ -175,7 +175,7 @@ const CreateQuiz = () => {
 
             console.log('Sending quiz data:', quizPayload);
             // Create quiz first
-            const quizResponse = await axios.post('http://localhost:8080/api/quizzes', quizPayload);
+            const quizResponse = await axios.post('/api/quizzes', quizPayload);
             console.log('Quiz creation response:', quizResponse);
             const quizId = quizResponse.data.id;
 
@@ -194,7 +194,7 @@ const CreateQuiz = () => {
                     };
 
                     console.log('Creating question:', questionPayload);
-                    const questionResponse = await axios.post(`http://localhost:8080/api/quizzes/${quizId}/questions`, questionPayload);
+                    const questionResponse = await axios.post(`/api/quizzes/${quizId}/questions`, questionPayload);
                     const questionId = questionResponse.data.id;
                     console.log('Question created with ID:', questionId);
 
@@ -205,7 +205,7 @@ const CreateQuiz = () => {
                             const isCorrect = i === question.correctOptionIndex;
                             console.log(`Option ${i}: "${question.options[i]}" - isCorrect: ${isCorrect}`);
                             try {
-                                await axios.post(`http://localhost:8080/api/quizzes/questions/${questionId}/options`, {
+                                await axios.post(`/api/quizzes/questions/${questionId}/options`, {
                                     optionText: question.options[i],
                                     isCorrect: isCorrect
                                 });
@@ -226,7 +226,7 @@ const CreateQuiz = () => {
                         for (const option of options) {
                             console.log(`TRUE_FALSE Option: "${option.text}" - isCorrect: ${option.isCorrect}`);
                             try {
-                                await axios.post(`http://localhost:8080/api/quizzes/questions/${questionId}/options`, {
+                                await axios.post(`/api/quizzes/questions/${questionId}/options`, {
                                     optionText: option.text,
                                     isCorrect: option.isCorrect
                                 });
@@ -256,7 +256,7 @@ const CreateQuiz = () => {
 
     const fixExistingQuiz = async (quizId) => {
         try {
-            const response = await axios.post(`http://localhost:8080/api/quizzes/${quizId}/fix-options`);
+            const response = await axios.post(`/api/quizzes/${quizId}/fix-options`);
             alert(`Fixed ${response.data} questions in quiz ${quizId}`);
             console.log('Fixed quiz options:', response.data);
         } catch (error) {
