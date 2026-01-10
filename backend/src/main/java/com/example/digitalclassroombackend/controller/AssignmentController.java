@@ -65,18 +65,35 @@ public class AssignmentController {
 
     @GetMapping("/student/assignments")
     public ResponseEntity<?> getStudentAssignments() {
+        System.out.println("=== STUDENT ASSIGNMENTS ENDPOINT CALLED ===");
         try {
             // Get current authenticated user
             Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-            String username = authentication.getName();
-            User user = userRepository.findByUsername(username).orElse(null);
+            System.out.println("Authentication object: " + authentication);
 
-            if (user == null || !"STUDENT".equals(user.getRole().name())) {
-                return ResponseEntity.status(403).body("Access denied");
+            if (authentication == null) {
+                System.out.println("No authentication found");
+                return ResponseEntity.status(401).body("Not authenticated");
+            }
+
+            String username = authentication.getName();
+            System.out.println("Username from auth: " + username);
+
+            User user = userRepository.findByUsername(username).orElse(null);
+            System.out.println("User found: " + (user != null));
+
+            if (user == null) {
+                System.out.println("User not found for username: " + username);
+                return ResponseEntity.status(403).body("User not found");
+            }
+
+            System.out.println("User role: " + user.getRole());
+            if (!"STUDENT".equals(user.getRole().name())) {
+                System.out.println("User is not a student, role: " + user.getRole().name());
+                return ResponseEntity.status(403).body("Access denied - not a student");
             }
 
             System.out.println("Fetching assignments for student: " + username);
-            System.out.println("Student role: " + user.getRole());
             System.out.println("Student classSemester: " + user.getClassSemester());
 
             // Get all assignments and filter based on access rules
