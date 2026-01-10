@@ -14,6 +14,8 @@ import java.util.Map;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -46,7 +48,7 @@ import com.example.digitalclassroombackend.repository.UserRepository;
 
 @RestController
 @RequestMapping("/api/student")
-@CrossOrigin(origins = "http://localhost:3000")
+@CrossOrigin(origins = {"http://localhost:3000", "https://digital-classroom-*", "https://*.vercel.app", "https://*.vercel-preview.app"})
 public class StudentController {
 
     @Autowired
@@ -362,11 +364,25 @@ public class StudentController {
 
     @GetMapping("/grades")
     public List<Map<String, Object>> getGrades() {
-        // Assuming student id 1 for now - only show published grades
-        List<Grades> grades = gradesRepository.findAll().stream()
-                .filter(g -> g.getSubmission().getSubmittedBy().getId() == 1)
-                .filter(g -> g.getStatus() == Grades.GradeStatus.PUBLISHED)
-                .collect(java.util.stream.Collectors.toList());
+        try {
+            // Get current authenticated user
+            Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+            if (authentication == null) {
+                return new ArrayList<>(); // Return empty list if not authenticated
+            }
+
+            String username = authentication.getName();
+            User student = userRepository.findByUsername(username).orElse(null);
+
+            if (student == null || !"STUDENT".equals(student.getRole().name())) {
+                return new ArrayList<>(); // Return empty list if not a student
+            }
+
+            // Get all published grades for this student
+            List<Grades> grades = gradesRepository.findAll().stream()
+                    .filter(g -> g.getSubmission().getSubmittedBy().getId().equals(student.getId()))
+                    .filter(g -> g.getStatus() == Grades.GradeStatus.PUBLISHED)
+                    .collect(java.util.stream.Collectors.toList());
 
         return grades.stream().map(grade -> {
             Map<String, Object> gradeMap = new HashMap<>();
@@ -411,6 +427,11 @@ public class StudentController {
 
             return gradeMap;
         }).collect(java.util.stream.Collectors.toList());
+
+        } catch (Exception e) {
+            System.err.println("Error fetching grades: " + e.getMessage());
+            return new ArrayList<>(); // Return empty list on error
+        }
     }
 
     @GetMapping("/notes")
