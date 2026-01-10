@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import axios from 'axios';
+import axios from '../api';
 import { useNavigate } from 'react-router-dom';
 
 const CreateAssignment = () => {
@@ -87,7 +87,7 @@ const CreateAssignment = () => {
 
     const fetchRubrics = async () => {
         try {
-            const response = await axios.get('http://localhost:8080/api/teacher/rubrics');
+            const response = await axios.get('/api/teacher/rubrics');
             setRubrics(response.data);
         } catch (error) {
             console.error('Error fetching rubrics:', error);
@@ -192,7 +192,7 @@ const CreateAssignment = () => {
                 assignmentData.append('file', file);
             }
 
-            await axios.post('http://localhost:8080/api/teacher/assignments', assignmentData, {
+            await axios.post('/api/assignments', assignmentData, {
                 headers: { 'Content-Type': 'multipart/form-data' }
             });
 
