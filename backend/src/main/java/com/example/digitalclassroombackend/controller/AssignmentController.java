@@ -39,6 +39,7 @@ import com.example.digitalclassroombackend.repository.AssignmentRepository;
 import com.example.digitalclassroombackend.repository.GradesRepository;
 import com.example.digitalclassroombackend.repository.SubmissionRepository;
 import com.example.digitalclassroombackend.repository.UserRepository;
+import com.fasterxml.jackson.core.JsonProcessingException;
 
 @RestController
 @RequestMapping("/api/assignments")
