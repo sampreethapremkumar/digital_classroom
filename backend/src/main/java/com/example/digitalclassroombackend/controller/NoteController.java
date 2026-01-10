@@ -88,17 +88,57 @@ public class NoteController {
     }
 
     @GetMapping("/download/{id}")
-    public ResponseEntity<byte[]> downloadNote(@PathVariable Long id) throws IOException {
-        Note note = noteRepository.findById(id).orElse(null);
-        if (note == null) {
-            return ResponseEntity.notFound().build();
+    public ResponseEntity<?> downloadNote(@PathVariable Long id) throws IOException {
+        try {
+            // Get current authenticated user
+            Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+            String username = authentication.getName();
+            User user = userRepository.findByUsername(username).orElse(null);
+
+            if (user == null) {
+                return ResponseEntity.status(401).body("User not authenticated");
+            }
+
+            Note note = noteRepository.findById(id).orElse(null);
+            if (note == null) {
+                return ResponseEntity.notFound().build();
+            }
+
+            // Check if user has access to this note
+            boolean canAccess = false;
+
+            if ("ALL_CLASS".equals(note.getAccessType())) {
+                // Check if user's class/semester matches the note's class/semester
+                canAccess = user.getClassSemester() != null &&
+                           user.getClassSemester().equals(note.getClassSemester());
+            } else if ("SELECTED_STUDENTS".equals(note.getAccessType())) {
+                // Check if user is in the assigned students list
+                canAccess = note.getAssignedStudents() != null &&
+                           note.getAssignedStudents().contains(user);
+            }
+
+            // Teachers and admins can access all notes
+            if ("TEACHER".equals(user.getRole().name()) || "ADMIN".equals(user.getRole().name())) {
+                canAccess = true;
+            }
+
+            if (!canAccess) {
+                return ResponseEntity.status(403).body("Access denied");
+            }
+
+            Path path = Paths.get(note.getFilePath());
+            if (!Files.exists(path)) {
+                return ResponseEntity.notFound().build();
+            }
+
+            byte[] data = Files.readAllBytes(path);
+            return ResponseEntity.ok()
+                    .header("Content-Disposition", "attachment; filename=\"" + note.getFileName() + "\"")
+                    .contentType(MediaType.parseMediaType(note.getFileType() != null ? note.getFileType() : "application/octet-stream"))
+                    .body(data);
+        } catch (Exception e) {
+            return ResponseEntity.status(500).body("Error downloading file: " + e.getMessage());
         }
-        Path path = Paths.get(note.getFilePath());
-        byte[] data = Files.readAllBytes(path);
-        return ResponseEntity.ok()
-                .header("Content-Disposition", "attachment; filename=\"" + note.getFileName() + "\"")
-                .contentType(MediaType.parseMediaType(note.getFileType()))
-                .body(data);
     }
 
     @PostMapping(consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
