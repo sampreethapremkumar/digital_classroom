@@ -27,21 +27,75 @@ const ViewNotes = () => {
                 responseType: 'blob'
             });
 
-            // Create a temporary link element for download
-            const url = window.URL.createObjectURL(new Blob([response.data]));
-            const link = document.createElement('a');
-            link.href = url;
-            link.download = fileName;
-            link.style.display = 'none';
+            // Check if the response is successful (2xx status)
+            if (response.status >= 200 && response.status < 300) {
+                // Check if response is actually a blob with content
+                if (response.data instanceof Blob && response.data.size > 0) {
+                    // Create a temporary link element for download
+                    const url = window.URL.createObjectURL(new Blob([response.data]));
+                    const link = document.createElement('a');
+                    link.href = url;
+                    link.download = fileName;
+                    link.style.display = 'none';
 
-            document.body.appendChild(link);
-            link.click();
-            document.body.removeChild(link);
+                    document.body.appendChild(link);
+                    link.click();
+                    document.body.removeChild(link);
 
-            // Clean up the URL object
-            window.URL.revokeObjectURL(url);
+                    // Clean up the URL object
+                    window.URL.revokeObjectURL(url);
+                    console.log('Download completed successfully');
+                } else {
+                    console.error('Invalid response data');
+                    alert('Download failed: Invalid file data received.');
+                }
+            } else {
+                // If status is not 2xx, try to read the error message
+                const text = await response.data.text();
+                console.error('Download failed with status', response.status, ':', text);
+                alert('Download failed: ' + text);
+            }
         } catch (error) {
             console.error('Error downloading note:', error);
+            if (error.response) {
+                console.error('Response status:', error.response.status);
+                // For blob responses, error.response.data is also a blob
+                if (error.response.data instanceof Blob) {
+                    error.response.data.text().then(text => {
+                        console.error('Error message:', text);
+                        if (error.response.status === 403) {
+                            alert('Access denied. You do not have permission to download this file.');
+                        } else if (error.response.status === 404) {
+                            alert('File not found.');
+                        } else if (error.response.status === 401) {
+                            alert('Authentication required. Please log in again.');
+                        } else {
+                            alert('Download failed: ' + text);
+                        }
+                    }).catch(() => {
+                        if (error.response.status === 403) {
+                            alert('Access denied. You do not have permission to download this file.');
+                        } else if (error.response.status === 404) {
+                            alert('File not found.');
+                        } else {
+                            alert('Download failed. Please try again.');
+                        }
+                    });
+                } else {
+                    console.error('Response data:', error.response.data);
+                    if (error.response.status === 403) {
+                        alert('Access denied. You do not have permission to download this file.');
+                    } else if (error.response.status === 404) {
+                        alert('File not found.');
+                    } else if (error.response.status === 401) {
+                        alert('Authentication required. Please log in again.');
+                    } else {
+                        alert('Download failed. Please try again.');
+                    }
+                }
+            } else {
+                alert('Network error. Please check your connection and try again.');
+            }
         } finally {
             setDownloading(null);
         }
