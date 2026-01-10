@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import axios from 'axios';
+import axios from '../api';
 import { useNavigate } from 'react-router-dom';
 
 const ViewFeedback = () => {
@@ -12,7 +12,7 @@ const ViewFeedback = () => {
 
     const fetchGrades = async () => {
         try {
-            const response = await axios.get('http://localhost:8080/api/student/grades');
+            const response = await axios.get('/api/student/grades');
             setGrades(response.data);
         } catch (error) {
             console.error('Error fetching grades:', error);
