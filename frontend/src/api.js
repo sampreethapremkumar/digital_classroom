@@ -1,7 +1,7 @@
 import axios from 'axios';
 
 // Set the base URL for all axios requests
-const API_BASE_URL = 'https://digitalclassroom-production.up.railway.app';
+const API_BASE_URL = process.env.REACT_APP_BACKEND_URL || 'http://localhost:8080';
 
 axios.defaults.baseURL = API_BASE_URL;
 
