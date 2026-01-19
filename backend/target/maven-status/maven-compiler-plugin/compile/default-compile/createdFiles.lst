@@ -9,6 +9,7 @@ com\example\digitalclassroombackend\repository\QuizOptionRepository.class
 com\example\digitalclassroombackend\model\Assignment.class
 com\example\digitalclassroombackend\model\Grades.class
 com\example\digitalclassroombackend\repository\SubmissionRepository.class
+com\example\digitalclassroombackend\config\CloudinaryConfig.class
 com\example\digitalclassroombackend\dto\LoginRequest.class
 com\example\digitalclassroombackend\repository\RubricCriteriaRepository.class
 com\example\digitalclassroombackend\repository\QuizRepository.class
@@ -37,4 +38,5 @@ com\example\digitalclassroombackend\repository\QuizSubmissionRepository.class
 com\example\digitalclassroombackend\DigitalClassroomBackendApplication.class
 com\example\digitalclassroombackend\controller\NoteController.class
 com\example\digitalclassroombackend\dto\JwtResponse.class
+com\example\digitalclassroombackend\config\JwtRequestFilter.class
 com\example\digitalclassroombackend\model\User.class
