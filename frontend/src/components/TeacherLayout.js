@@ -1,13 +1,11 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import axios from '../api';
-import TeacherDashboard from './TeacherDashboard';
 import UploadNotes from './UploadNotes';
 import CreateAssignment from './CreateAssignment';
 import CreateQuiz from './CreateQuiz';
 import ViewSubmissions from './ViewSubmissions';
 import GradeAssignments from './GradeAssignments';
-import GradeAssignment from './GradeAssignment';
 
 const TeacherLayout = () => {
     const [activeItem, setActiveItem] = useState('dashboard');
@@ -573,4 +571,3 @@ const TeacherDashboardContent = ({ stats }) => {
 };
 
 export default TeacherLayout;
-

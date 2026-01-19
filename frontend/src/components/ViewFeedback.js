@@ -19,17 +19,6 @@ const ViewFeedback = () => {
         }
     };
 
-    const buttonStyle = {
-        background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
-        color: 'white',
-        border: 'none',
-        padding: '10px 20px',
-        borderRadius: '6px',
-        cursor: 'pointer',
-        fontSize: '16px',
-        transition: 'background 0.3s'
-    };
-
     return (
         <div style={{
             minHeight: '100vh',

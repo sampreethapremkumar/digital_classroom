@@ -26,35 +26,6 @@ const ViewSubmissions = () => {
         window.open(fileUrl, '_blank');
     };
 
-    const tableStyle = {
-        width: '100%',
-        borderCollapse: 'collapse',
-        marginTop: '20px'
-    };
-
-    const thStyle = {
-        border: '1px solid #ddd',
-        padding: '8px',
-        textAlign: 'left',
-        backgroundColor: '#f2f2f2'
-    };
-
-    const tdStyle = {
-        border: '1px solid #ddd',
-        padding: '8px'
-    };
-
-    const buttonStyle = {
-        background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
-        color: 'white',
-        border: 'none',
-        padding: '10px 20px',
-        borderRadius: '6px',
-        cursor: 'pointer',
-        fontSize: '16px',
-        transition: 'background 0.3s'
-    };
-
     return (
         <div style={{
             minHeight: '100vh',
