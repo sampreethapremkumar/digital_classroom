@@ -17,6 +17,7 @@ services:
     env: java
     buildCommand: mvn clean package -DskipTests
     startCommand: java -jar target/*.jar
+    dockerfilePath: backend/Dockerfile
     envVars:
       - key: SPRING_PROFILES_ACTIVE
         value: production
