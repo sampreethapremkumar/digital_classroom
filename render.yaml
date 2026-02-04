@@ -1,0 +1,38 @@
+# Render deployment configuration
+services:
+  - type: web
+    name: digital-classroom-frontend
+    env: static
+    buildCommand: npm install && npm run build
+    publishPath: ./build
+    envVars:
+      - key: REACT_APP_BACKEND_URL
+        fromService:
+          name: digital-classroom-backend
+          type: web
+          property: url
+
+  - type: web
+    name: digital-classroom-backend
+    env: java
+    buildCommand: mvn clean package -DskipTests
+    startCommand: java -jar target/*.jar
+    envVars:
+      - key: SPRING_PROFILES_ACTIVE
+        value: production
+      - key: SPRING_DATASOURCE_URL
+        fromDatabase:
+          name: digital-classroom-db
+          property: connectionString
+      - key: CLOUDINARY_CLOUD_NAME
+        sync: false
+      - key: CLOUDINARY_API_KEY
+        sync: false
+      - key: CLOUDINARY_API_SECRET
+        sync: false
+      - key: JWT_SECRET
+        sync: false
+
+databases:
+  - name: digital-classroom-db
+    plan: free
