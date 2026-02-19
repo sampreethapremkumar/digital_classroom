@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import axios from 'axios';
+import axios from '../api';
 import { useNavigate } from 'react-router-dom';
 
 const GradeAssignments = () => {
@@ -34,7 +34,7 @@ const GradeAssignments = () => {
 
     const fetchSubmissions = async () => {
         try {
-            const response = await axios.get('http://localhost:8080/api/assignments/submissions');
+            const response = await axios.get('/api/assignments/submissions');
             setSubmissions(response.data);
             setIsLoading(false);
         } catch (error) {
@@ -48,7 +48,7 @@ const GradeAssignments = () => {
         try {
             // Assuming we get assignment ID from current submission
             if (currentSubmission?.assignment?.id) {
-                const response = await axios.get(`http://localhost:8080/api/teacher/assignments/${currentSubmission.assignment.id}/grade-summary`);
+                const response = await axios.get(`/api/teacher/assignments/${currentSubmission.assignment.id}/grade-summary`);
                 setGradeSummary(response.data);
             }
         } catch (error) {
@@ -58,13 +58,13 @@ const GradeAssignments = () => {
 
     const loadSubmission = async (submission) => {
         try {
-            const response = await axios.get(`http://localhost:8080/api/assignments/submissions/${submission.id}`);
+            const response = await axios.get(`/api/assignments/submissions/${submission.id}`);
             setCurrentSubmission(response.data);
 
             // Load rubric data if assignment has one
             if (response.data.assignment?.id) {
                 try {
-                    const rubricResponse = await axios.get(`http://localhost:8080/api/assignments/${response.data.assignment.id}/rubric`);
+                    const rubricResponse = await axios.get(`/api/assignments/${response.data.assignment.id}/rubric`);
                     setRubricData(rubricResponse.data);
                 } catch (error) {
                     setRubricData(null);
@@ -144,13 +144,13 @@ const GradeAssignments = () => {
 
             if (gradeStatus === 'REJECTED') {
                 // Handle rejection
-                await axios.post(`http://localhost:8080/api/teacher/grades/${currentSubmission.id}/reject`, {
+                await axios.post(`/api/teacher/grades/${currentSubmission.id}/reject`, {
                     reason: rejectionReason
                 });
                 setSuccess('Submission rejected successfully!');
             } else {
                 // Handle grading
-                await axios.post('http://localhost:8080/api/teacher/grades', payload);
+                await axios.post('/api/teacher/grades', payload);
                 setSuccess('Grade saved successfully (draft mode)!');
             }
 
@@ -179,7 +179,7 @@ const GradeAssignments = () => {
 
     const handlePublish = async () => {
         try {
-            await axios.post(`http://localhost:8080/api/teacher/grades/${currentSubmission.id}/publish`);
+            await axios.post(`/api/teacher/grades/${currentSubmission.id}/publish`);
             setSuccess('Grade published successfully!');
             setShowPublishConfirm(false);
 
@@ -195,7 +195,7 @@ const GradeAssignments = () => {
 
     const handleUnpublish = async () => {
         try {
-            await axios.post(`http://localhost:8080/api/teacher/grades/${currentSubmission.id}/unpublish`);
+            await axios.post(`/api/teacher/grades/${currentSubmission.id}/unpublish`);
             setSuccess('Grade unpublished successfully!');
 
             // Refresh data
@@ -225,7 +225,8 @@ const GradeAssignments = () => {
     };
 
     const handleFileClick = (filename) => {
-        const fileUrl = `http://localhost:8080/uploads/submissions/${filename}`;
+        const baseUrl = process.env.REACT_APP_BACKEND_URL || 'http://localhost:8080';
+        const fileUrl = `${baseUrl}/uploads/submissions/${filename}`;
         window.open(fileUrl, '_blank');
     };
 
@@ -460,12 +461,12 @@ const GradeAssignments = () => {
                         </h2>
 
                         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '20px' }}>
-                            <div><strong>Student:</strong><br/>👤 {currentSubmission.submittedBy?.username}</div>
-                            <div><strong>Assignment:</strong><br/>📝 {currentSubmission.assignment?.title}</div>
-                            <div><strong>Submission Date:</strong><br/>📅 {formatDate(currentSubmission.submitDate)}</div>
-                            <div><strong>Total Marks:</strong><br/>🎯 {currentSubmission.assignment?.totalMarks}</div>
-                            <div><strong>Status:</strong><br/>{getSubmissionStatusBadge(currentSubmission).text}</div>
-                            <div><strong>File:</strong><br/>
+                            <div><strong>Student:</strong><br />👤 {currentSubmission.submittedBy?.username}</div>
+                            <div><strong>Assignment:</strong><br />📝 {currentSubmission.assignment?.title}</div>
+                            <div><strong>Submission Date:</strong><br />📅 {formatDate(currentSubmission.submitDate)}</div>
+                            <div><strong>Total Marks:</strong><br />🎯 {currentSubmission.assignment?.totalMarks}</div>
+                            <div><strong>Status:</strong><br />{getSubmissionStatusBadge(currentSubmission).text}</div>
+                            <div><strong>File:</strong><br />
                                 {currentSubmission.fileName ? (
                                     <button onClick={() => handleFileClick(currentSubmission.fileName)} style={{
                                         background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',

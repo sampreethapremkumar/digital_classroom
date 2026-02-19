@@ -312,8 +312,8 @@ const TeacherLayout = () => {
                             transition: 'all 0.3s ease',
                             boxShadow: '0 4px 15px rgba(0, 0, 0, 0.1)'
                         }}
-                        onMouseEnter={(e) => e.currentTarget.style.transform = 'scale(1.05)'}
-                        onMouseLeave={(e) => e.currentTarget.style.transform = 'scale(1)'}
+                            onMouseEnter={(e) => e.currentTarget.style.transform = 'scale(1.05)'}
+                            onMouseLeave={(e) => e.currentTarget.style.transform = 'scale(1)'}
                         >
                             <span style={{ fontSize: '18px' }}>👤</span>
                         </button>
@@ -327,8 +327,8 @@ const TeacherLayout = () => {
                             boxShadow: '0 4px 15px rgba(0, 0, 0, 0.1)',
                             position: 'relative'
                         }}
-                        onMouseEnter={(e) => e.currentTarget.style.transform = 'scale(1.05)'}
-                        onMouseLeave={(e) => e.currentTarget.style.transform = 'scale(1)'}
+                            onMouseEnter={(e) => e.currentTarget.style.transform = 'scale(1.05)'}
+                            onMouseLeave={(e) => e.currentTarget.style.transform = 'scale(1)'}
                         >
                             <span style={{ fontSize: '18px' }}>🔔</span>
                             <div style={{
@@ -384,7 +384,7 @@ const TeacherLayout = () => {
                 </main>
             </div>
 
-            <style jsx>{`
+            <style>{`
                 @keyframes pulse {
                     0% { opacity: 1; }
                     50% { opacity: 0.5; }
@@ -560,7 +560,7 @@ const TeacherDashboardContent = ({ stats }) => {
                 </div>
             </div>
 
-            <style jsx>{`
+            <style>{`
                 @keyframes float {
                     0%, 100% { transform: translateY(0px); }
                     50% { transform: translateY(-10px); }

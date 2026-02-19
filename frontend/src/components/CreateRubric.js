@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import axios from 'axios';
+import axios from '../api';
 import './CreateRubric.css';
 
 const CreateRubric = () => {
@@ -68,7 +68,7 @@ const CreateRubric = () => {
         }))
       };
 
-      const response = await axios.post('http://localhost:8080/api/teacher/rubrics', rubricData);
+      const response = await axios.post('/api/teacher/rubrics', rubricData);
       setMessage('Rubric created successfully!');
 
       // Reset form

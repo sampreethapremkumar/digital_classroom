@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import axios from 'axios';
+import axios from '../api';
 
 const StudentDashboard = () => {
     const navigate = useNavigate();
@@ -12,7 +12,7 @@ const StudentDashboard = () => {
 
     const fetchSubmissions = async () => {
         try {
-            const response = await axios.get('http://localhost:8080/api/assignments/submissions');
+            const response = await axios.get('/api/assignments/submissions');
             setSubmissions(response.data);
         } catch (error) {
             console.error('Error fetching submissions:', error);

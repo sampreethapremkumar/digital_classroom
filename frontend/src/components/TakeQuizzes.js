@@ -173,7 +173,7 @@ const TakeQuizzes = () => {
     const handleAutoSubmit = useCallback(async () => {
         if (quizStarted) {
             try {
-                const response = await axios.post(`http://localhost:8080/api/student/quizzes/${selectedQuiz.id}/submit`, answers);
+                const response = await axios.post(`/api/student/quizzes/${selectedQuiz.id}/submit`, answers);
                 setSubmissionResult(response.data);
                 setQuizSubmitted(true);
                 setQuizStarted(false);

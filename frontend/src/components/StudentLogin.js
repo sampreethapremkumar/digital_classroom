@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import axios from 'axios';
+import axios from '../api';
 import { useNavigate } from 'react-router-dom';
 
 const StudentLogin = () => {
@@ -15,7 +15,7 @@ const StudentLogin = () => {
         setError('');
 
         try {
-            const response = await axios.post('http://localhost:8080/api/auth/login', { username, password });
+            const response = await axios.post('/api/auth/login', { username, password });
             const user = response.data;
 
             // Check if user is a student and approved
@@ -310,7 +310,7 @@ const StudentLogin = () => {
                 </div>
             </div>
 
-            <style jsx>{`
+            <style>{`
                 @keyframes float {
                     0%, 100% { transform: translateY(0px); }
                     50% { transform: translateY(-10px); }
